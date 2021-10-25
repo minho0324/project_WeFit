@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+
+	<annotation-driven />
+
+	<resources mapping="/resources/**" location="/resources/" />
+	<!-- 이미지 파일을 jsp에서 쉽게 쓰기위해 경로 매핑해놓기 -->
+	<resources mapping="/img/**" location="/resources/img" />
+	<resources mapping="/upload/**" location="file:///../upload/" />
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />
+	</beans:bean>
+
+
+	<!-- 메일 인증 -->
+	<beans:bean id="mailSender"	class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<beans:property name="host" value="smtp.gmail.com" />
+		<beans:property name="port" value="587" /><!-- 465 or 25 -->
+		<beans:property name="username" value="imeilteseuteu@gmail.com" />
+		<beans:property name="password" value="1q2w3e4r5t!!" />
+		<beans:property name="defaultEncoding" value="utf-8" />
+		<beans:property name="javaMailProperties">
+			<beans:props>
+				<beans:prop key="mail.transport.protocol">smtp</beans:prop>
+				<beans:prop key="mail.smtp.auth">true</beans:prop>
+				<beans:prop key="mail.smtp.starttls.enable">true</beans:prop>
+				<beans:prop key="mail.debug">true</beans:prop>
+			</beans:props>
+		</beans:property>
+	</beans:bean>
+	<context:component-scan base-package="com.spring.wefit" />
+
+	
+	
+	<context:component-scan base-package="com.spring.*" />
+	
+		<!-- 파일 업로드 -->
+	<!-- 반드시 id를 multipartResolver로 선언 
+	 Multipart 형식으로 전달되는 데이터를 스프링 mvc에서 사용할 수 있도록 변환해 주는 객체-->
+	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		
+		<!-- 최대 업로드 가능한 바이트 크기 (바이트단위), -1은 제한이 없음을 의미 -->
+		<beans:property name="maxUploadSize" value="10485760" />
+		
+		<!-- 업로드 요청을 변환할 때 사용할 문자 인코딩 방식 -->
+		<beans:property name="defaultEncoding" value="utf-8" />
+	
+	</beans:bean>
+	
+	
+	
+	<!-- 인터셉터 빈 따로 등록 -->
+	<beans:bean id="autoLogin" class="com.spring.wefit.commons.AutoLoginInterceptor" />
+	<beans:bean id="ManagerCheck" class="com.spring.wefit.commons.ManagerInteceptor" />
+	<beans:bean id="AuthCheck" class="com.spring.wefit.commons.AuthInterceptor" />
+	
+	
+	<interceptors>
+		<interceptor>
+			<mapping path="/**"/>
+			<beans:ref bean="autoLogin" />
+		</interceptor>
+		<interceptor>
+			<mapping path="/courseBoard/write"/>
+			<mapping path="/courseBoard/regist"/>
+			<mapping path="/courseBoard/modify"/>
+			<mapping path="/courseBoard/delete"/>
+			
+			<mapping path="/noticeBoard/noticeWrite"/>
+			<mapping path="/noticeBoard/noticeModify"/>
+			<mapping path="/noticeBoard/noticeDelete"/>
+			
+			<beans:ref bean="ManagerCheck" />
+		</interceptor>
+		<interceptor>
+			<mapping path="/courseBoard/write"/>
+			<mapping path="/courseBoard/regist"/>
+			<mapping path="/courseBoard/modify"/>
+			<mapping path="/courseBoard/delete"/>
+			<mapping path="/courseBoard/like"/>
+			<mapping path="/courseBoard/report"/>
+			
+			<mapping path="/courseReply/regist"/>
+			<mapping path="/courseReply/modify"/>
+			<mapping path="/courseReply/delete"/>
+			
+			<mapping path="/dietBoard/dietWrite"/>
+			<mapping path="/dietBoard/dietModify"/>
+			<mapping path="/dietBoard/dietDelete"/>
+			<mapping path="/dietBoard/dietLikely"/>
+			<mapping path="/dietBoard/dietReport"/>
+			
+			<mapping path="/dietReply/replyRegist"/>
+			<mapping path="/dietReply/dietReplyModify"/>
+			<mapping path="/dietReply/dietReplyDelete"/>
+			
+			<mapping path="/freeBoard/freeWrite"/>
+			<mapping path="/freeBoard/freeModify"/>
+			<mapping path="/freeBoard/freeDelete"/>
+			<mapping path="/freeBoard/freeLikely"/>
+			<mapping path="/freeBoard/freeReport"/>
+			
+			<mapping path="/freeReply/freeReplyRegist"/>
+			<mapping path="/freeReplyModify"/>
+			<mapping path="/freeReplyDelete"/>
+			
+			<mapping path="/marketBoard/market_write"/>
+			<mapping path="/marketBoard/regist"/>
+			<mapping path="/marketBoard/market_modify"/>
+			<mapping path="/marketBoard/update"/>
+			<mapping path="/marketBoard/delete"/>
+			<mapping path="/marketBoard/marketLikely"/>
+			<mapping path="/marketBoard/marketReport"/>
+			
+			<mapping path="/marketReply/regist"/>
+			<mapping path="/marketReply/modify"/>
+			<mapping path="/marketReply/delete"/>
+			
+			<mapping path="/noticeBoard/noticeWrite"/>
+			<mapping path="/noticeBoard/noticeModify"/>
+			<mapping path="/noticeBoard/noticeDelete"/>
+			<mapping path="/noticeBoard/noticeLikely"/>
+			<mapping path="/noticeBoard/noticeReport"/>
+			
+			<mapping path="/noticeReply/noticeReplyRegist"/>
+			<mapping path="/noticeReply/noticeReplyModify"/>
+			<mapping path="/noticeReply/noticeReplyDelete"/>
+			
+			<mapping path="/placeBoard/placeWrite"/>
+			<mapping path="/placeBoard/placeModify"/>
+			<mapping path="/placeBoard/placeDelete"/>
+			<mapping path="/placeBoard/placeLike"/>
+			<mapping path="/placeBoard/placeReport"/>
+			
+			<mapping path="/placeReply/replyRegist"/>
+			<mapping path="/placeReply/placeReplyModify"/>
+			<mapping path="/placeReply/placeReplyDelete"/>
+
+			<beans:ref bean="AuthCheck" />
+		</interceptor>
+	</interceptors>
+	
+	
+	
+	
+	
+</beans:beans>

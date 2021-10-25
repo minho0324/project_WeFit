@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.spring.wefit.free.mapper.IFreeReplyMapper">
+  	
+  
+  	<insert id="regist"><!-- 댓글 등록  -->
+		INSERT INTO FreeReply
+		(frNum, fbNum, frContent,memberNum)
+		VALUES(FreeReply_seq.NEXTVAL,#{fbNum }, #{frContent }, #{memberNum })
+		
+	</insert>
+	
+	<select id="getList" resultType="com.spring.wefit.command.FreeReplyVO"><!-- 댓글 목록  -->
+		SELECT * FROM
+		(
+			SELECT ROWNUM as rn, freereply.* FROM
+			(
+				SELECT fr.*, m.memberNick
+				FROM FreeReply fr, Member m
+				WHERE fr.fbNum = #{fbNum }
+				AND fr.memberNum = m.memberNum
+				ORDER BY fr.frRegDate DESC
+			) freereply
+		)
+		<![CDATA[
+		WHERE rn > (#{paging.pageNum}-1)*#{paging.countPerPage}
+		AND rn <= #{paging.pageNum} * #{paging.countPerPage}
+		]]>
+	
+	</select>
+	
+	<update id="update"><!-- 댓글 수정  -->
+		UPDATE FreeReply SET
+			frContent = #{frContent}
+		WHERE frNum = #{frNum}
+		
+	</update>
+	
+	<delete id="delete">
+		DELETE FROM FreeReply
+		WHERE frNum= #{frNum}
+	</delete>
+	
+	<select id="getTotal" resultType="int">
+		SELECT COUNT(*) FROM FreeBoard fb, FreeReply fr
+		WHERE fb.fbNum = fr.fbNum
+		AND fr.fbNum = #{fbNum }
+	</select>
+	
+	<select id="getContent" resultType="com.spring.wefit.command.FreeReplyVO">
+		SELECT * FROM FreeReply
+		WHERE frNum = #{frNum}
+	</select>
+  </mapper>

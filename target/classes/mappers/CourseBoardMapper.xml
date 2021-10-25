@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- 마이바티스 선언문 -->
+  
+<mapper namespace="com.spring.wefit.course.mapper.ICourseBoardMapper">
+
+
+
+<insert id="regist">
+   INSERT INTO CourseBoard (cbNum, memberNum, cbTitle, cbContent, cbYouCode, cbCategory)
+   VALUES (courseBoard_seq.NEXTVAL, #{memberNum}, #{cbTitle}, #{cbContent}, #{cbYouCode}, #{cbCategory})
+</insert>
+
+
+<select id="getList" resultType="com.spring.wefit.command.CourseBoardVO">
+   SELECT * FROM CourseBoard
+   ORDER BY cbNum DESC
+</select>
+
+
+<select id="getContent" resultType="com.spring.wefit.command.CourseBoardVO">
+   SELECT * FROM CourseBoard
+   WHERE cbNum=#{cbNum}
+</select>
+
+
+<update id="update">
+   UPDATE CourseBoard
+   SET cbCategory=#{cbCategory}, cbTitle=#{cbTitle}, cbContent=#{cbContent}, cbYouCode=#{cbYouCode}
+   WHERE cbNum=#{cbNum}
+</update>
+
+
+<delete id="delete">
+   DELETE FROM CourseBoard
+   WHERE cbNum=#{cbNum}
+</delete>
+
+
+<update id="upHit">
+   UPDATE CourseBoard
+   SET cbLookCount = cbLookCount + 1
+   WHERE cbNum=#{cbNum}
+</update>
+
+
+
+
+</mapper>

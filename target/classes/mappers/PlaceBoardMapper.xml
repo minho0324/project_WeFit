@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.wefit.placeboard.mapper.IPlaceBoardMapper">
+
+	<select id="getList" resultType="com.spring.wefit.command.PlaceBoardVO">
+		  	SELECT * FROM PlaceBoard
+		  	ORDER BY pbNum DESC 	
+	</select>
+
+
+	<insert id="regist">
+		INSERT INTO PlaceBoard
+		(
+		pbNum, memberNum, pbCategory, pbTitle, pbContent, 
+		pbImage1, pbImage2, pbImage3, pbImage4, pbImage5,
+		pbRealImage1, pbRealImage2, pbRealImage3, pbRealImage4, pbRealImage5,
+		<!-- 
+		pbAddrBasic, pbAddrDetail, pbLatitude, pbLongitude, 
+		-->
+		pbLookCount, pbImageCount
+		)
+		VALUES
+		(
+		placeboard_seq.NEXTVAL, 
+		#{memberNum}, #{pbCategory}, #{pbTitle}, #{pbContent}, 
+		#{pbImage1}, #{pbImage2}, #{pbImage3}, #{pbImage4}, #{pbImage5},
+		#{pbRealImage1}, #{pbRealImage2},#{pbRealImage3},#{pbRealImage4},#{pbRealImage5},
+		<!-- 
+		#{pbAddrBasic}, #{pbAddrDetail}, #{pbLatitude}, #{pbLongitude}, 
+		 -->
+		#{pbLookCount}, #{pbImageCount}
+		)		
+	</insert>
+	
+	
+	<select id="getContent"
+		resultType="com.spring.wefit.command.PlaceBoardVO">
+		SELECT * FROM PlaceBoard
+		WHERE pbNum = #{pbNum}
+	</select>
+
+	<update id="upHit">
+   		UPDATE CourseBoard
+   		SET cbLookCount = cbLookCount + 1
+  		WHERE cbNum=#{cbNum}
+	</update>
+	
+	
+  <!--  
+	<sql id="search">
+		<if test="condition == 'pbTitle'">
+			WHERE pbTitle LIKE '%'||#{keyword}||'%'
+		</if>
+		<if test="condition == 'pbContent'">
+			WHERE pbContent LIKE '%'||#{keyword}||'%'
+		</if>
+		<if test="condition == 'memberNum'">
+			WHERE memberNum LIKE '%'||#{keyword}||'%'
+		</if>
+		<if test="condition == 'titleContent'">
+			WHERE pbTitle LIKE '%'||#{keyword}||'%'
+			OR pbContent LIKE '%'||#{keyword}||'%'
+		</if>
+	</sql>
+  -->
+	
+
+
+
+	<!--
+	<select id="getList"
+		resultType="com.spring.wefit.command.PlaceBoardVO">
+		SELECT * FROM
+			(
+			SELECT ROWNUM as rn, tbl.* FROM
+				(
+				SELECT * FROM PlaceBoard
+				<include refid="search" />
+				ORDER BY pbNum DESC
+				) tbl
+			)
+		<![CDATA[
+		WHERE rn > (#{pageNum} - 1) * #{countPerPage}
+		AND rn <= #{pageNum} * #{countPerPage}
+		]]>
+	</select> -->
+	
+		  
+
+
+
+	<select id="getTotal" resultType="int">
+		SELECT COUNT(*)
+		FROM PlaceBoard
+		<!-- <include refid="search" /> -->
+	</select>
+
+
+
+
+
+	<update id="update">
+		UPDATE PlaceBoard
+		SET 
+		pbTitle = #{pbTitle},
+		pbContent = #{pbContent},
+		pbImage1 = #{pbImage1}, pbImage2 = #{pbImage2}, 
+		pbImage3 = #{pbImage3}, pbImage4= #{pbImage4}, 
+		pbImage5 = #{pbImage5},
+		pbRealImage1 = #{pbRealImage1}, pbRealImage2 = #{pbRealImage2}, 
+		pbRealImage3 = #{pbRealImage3}, pbRealImage4 = #{pbRealImage4}, 
+		pbRealImage5 = #{pbRealImage5}
+		WHERE pbNum=#{pbNum}
+	</update>
+  	
+	<delete id="delete">
+		DELETE FROM PlaceBoard
+		WHERE pbNum=#{pbNum}
+	</delete>
+
+
+
+
+</mapper>
+
+

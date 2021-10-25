@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring.wefit.user.mapper.IUserMapper">
+	<select id="emailCheck" resultType="int">
+		SELECT COUNT(*) FROM member
+		WHERE memberEmail = #{email}
+	</select>
+	
+	<select id="nickCheck" resultType="int">
+		SELECT COUNT(*) FROM member
+		WHERE memberNick = #{nick}	
+	</select>
+
+	<insert id="join">
+		INSERT INTO member(memberNum, memberEmail,memberNick,memberPasswd,memberPhone,memberHumanYN,memberEmailYN, memberCode)
+		VALUES (member_seq.NEXTVAL,#{memberEmail},#{memberNick},#{memberPasswd},#{memberPhone},'N','N',#{memberCode})
+	</insert>
+	
+	<update id="authUser">
+		UPDATE member SET memberEmailYN = 'Y'
+		WHERE memberNick = #{nick} AND memberCode = #{code}
+	</update>
+	
+	<update id="codeChange">
+		UPDATE member SET memberCode = #{code}
+		WHERE memberNick = #{nick}
+	</update>
+	
+	<select id="getInfo" resultType="com.spring.wefit.command.UserVO">
+		SELECT * FROM member
+		WHERE memberEmail = #{email }
+	</select>
+	
+	
+	<select id="getUserWithSessionId" resultType="com.spring.wefit.command.UserVO">
+		SELECT * FROM member
+		WHERE sessionId = #{sessionId }
+	</select>
+	
+	<update id="keepLogin">
+		UPDATE member
+		SET sessionId = #{sessionId },
+		autoLoginLimit = #{autoLoginLimit }
+		WHERE memberEmail = #{memberEmail }
+	</update>
+	
+	<update id="recovery">
+		UPDATE member
+		SET memberDelDate = null,
+		memberHumanYN = 'N'
+		WHERE memberEmail = #{email}
+	</update>
+		
+	
+</mapper>

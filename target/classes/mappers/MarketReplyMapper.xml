@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.wefit.market.mapper.IMarketReplyMapper">
+
+	<insert id="replyRegist">
+		INSERT INTO MarketReply(mrNum, mbNum, mrContent, memberNum)
+		VALUES(marketReply_seq.NEXTVAL, #{mbNum}, #{mrContent}, #{memberNum})
+	</insert>
+	
+	<select id="getList" resultType="com.spring.wefit.command.MarketReplyVO"><!-- 댓글 목록  -->
+		SELECT * FROM
+		(
+			SELECT ROWNUM as rn, MarketReply.* FROM
+			(
+				SELECT mr.*, m.memberNick
+				FROM MarketReply mr, Member m
+				WHERE mr.mbNum = #{mbNum }
+				AND mr.memberNum = m.memberNum
+				ORDER BY mr.mrRegDate DESC
+			) marketreply
+		)
+		<![CDATA[
+		WHERE rn > (#{paging.pageNum}-1)*#{paging.countPerPage}
+		AND rn <= #{paging.pageNum} * #{paging.countPerPage}
+		]]>
+	
+	</select>
+	
+	<select id="getTotal" resultType="int">
+		SELECT COUNT(*)
+		FROM MarketBoard mb, MarketReply mr 
+		WHERE mb.mbNum = mr.mbNum
+		AND mr.mbNum = #{mbNum}
+	</select>
+	
+	<update id="replyUpdate">
+		UPDATE MarketReply
+		SET mrContent = #{mrContent}
+		WHERE mrNum = #{mrNum}
+	</update>
+	
+	<delete id="replyDelete">
+		DELETE FROM MarketReply
+		WHERE mrNum = #{mrNum}
+	</delete>
+	
+	<select id="getContent" resultType="com.spring.wefit.command.MarketReplyVO">
+		SELECT * FROM MarketReply
+		WHERE mrNum = #{mrNum}
+	</select>
+
+
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- 마이바티스 선언문 -->
+  
+<mapper namespace="com.spring.wefit.course.mapper.ICourseReplyMapper">
+
+<!-- <resultMap type="com.spring.wefit.command.CourseReplyVO" id="CourseReplyMap"></resultMap>
+<resultMap type="com.spring.wefit.command.UserVO" id="UserMap"></resultMap> -->
+
+
+<insert id="regist">
+	INSERT INTO CourseReply
+	(crNum, cbNum, crContent, memberNum) <!-- memberNum은 로그인 세션쪽에서 가져와야함. -->
+	VALUES (courseReply_seq.NEXTVAL, #{cbNum}, #{crContent}, #{memberNum})
+</insert>
+
+
+<select id="getList" resultType="com.spring.wefit.command.CourseReplyVO">
+<!--     SELECT * FROM CourseReply
+	WHERE cbNum = #{cbNum}
+	ORDER BY crRegDate DESC --><!-- 페이징 처리 전 --> <!-- order by를 crNum이 아니라 crRegDate로 해야함!! 그래야지 수정되었을때 수정된 날짜가 젤 최신글로 뿌려줌 -->
+	
+	
+	SELECT * FROM
+	(
+		SELECT ROWNUM as rn, CourseReply.* FROM
+		(
+			SELECT cr.*, m.memberNick
+			FROM CourseReply cr, Member m
+			WHERE cr.cbNum = #{cbNum}
+			AND cr.memberNum = m.memberNum
+			ORDER BY cr.crRegDate DESC
+		) CourseReply
+	)
+	<![CDATA[
+	WHERE rn > (#{vo.pageNum}-1)*#{vo.countPerPage}
+	AND rn <= #{vo.pageNum} * #{vo.countPerPage}
+	]]> <!-- 페이징 처리 후 + member테이블과 조인 -->
+
+</select>
+
+<select id="getTotal" resultType="int">
+	SELECT COUNT(*) FROM CourseReply cr, Member m
+	WHERE cr.cbNum = #{cbNum}
+	AND cr.memberNum = m.memberNum
+</select>
+
+<update id="update">
+	UPDATE CourseReply SET crContent = #{crContent}, crRegDate = SYSDATE
+	WHERE crNum = #{crNum}	
+</update>
+
+<delete id="delete">
+	DELETE FROM CourseReply
+	WHERE crNum = #{crNum}
+</delete>
+
+
+<select id="memberCheck" resultType="int">
+	SELECT COUNT(*) FROM CourseReply
+	WHERE crNum = #{crNum} AND memberNum = #{memberNum}
+</select>
+
+<select id="getContent" resultType="com.spring.wefit.command.CourseReplyVO">
+	SELECT * FROM CourseReply
+	WHERE crNum = #{crNum}
+</select>
+
+<select id="getCrByte" resultType="int">
+	SELECT LENGTHB(crContent) crContentByte 
+	FROM CourseReply
+	WHERE crNum = #{crNum}
+</select>
+
+</mapper>

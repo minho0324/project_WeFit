@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring.wefit.diet.mapper.IDietReplyMapper">
+	  
+	  <insert id="replyRegist">
+	  INSERT INTO DietReply
+	  (
+	  	drNum, dbNum, drContent, memberNum
+	  )
+	  VALUES
+	  (
+	  	dietReply_seq.NEXTVAL, #{dbNum}, 
+	  	#{drContent}, #{memberNum}
+	  )
+	  </insert>
+	  
+	  
+	  <select id="getList" resultType="com.spring.wefit.command.DietBoardReplyVO">
+				
+				SELECT * FROM	
+				(
+					SELECT ROWNUM as rn, tbl.* FROM
+					(
+						SELECT 
+							dr.*, m.memberNick
+						FROM 
+							dietReply dr, 
+							Member m
+						WHERE 
+							dr.dbNum = #{dbNum }
+							AND dr.memberNum = m.memberNum
+							ORDER BY dr.drRegDate DESC
+					) tbl
+				)
+				<![CDATA[
+				WHERE rn > (#{paging.pageNum}-1)*#{paging.countPerPage}
+				AND rn <= #{paging.pageNum} * #{paging.countPerPage}
+				]]>
+				
+	  </select>
+
+
+	  <update id="replyUpdate">
+	  	UPDATE DietReply
+	  	SET
+	  	drContent = #{drContent}
+	  	WHERE drNum = #{drNum}
+	  </update>
+	  
+
+	  <delete id="replyDelete">
+	  	DELETE FROM DietReply
+		WHERE drNum = #{drNum}
+	  </delete>
+	  
+	  
+	  <select id="getTotal" resultType="int">
+	  	SELECT COUNT(*) FROM DietReply
+		WHERE dbNum = #{dbNum}
+	  </select>
+	  
+	  
+	  <select id="getContent" resultType="com.spring.wefit.command.DietBoardReplyVO">
+		SELECT * FROM DietReply
+		WHERE drNum = #{drNum}
+	</select>
+	  
+
+	  
+	  
+</mapper>

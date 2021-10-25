@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+   namespace="com.spring.wefit.diet.mapper.IDietBoardMapper">
+
+   <sql id="search">
+      <if test="condition == 'title'">
+         AND dbtitle LIKE '%'||#{keyword}||'%'
+      </if>
+      <if test="condition == 'content'">
+         AND dbcontent LIKE '%'||#{keyword}||'%'
+      </if>
+      <if test="condition == 'writer'">
+         AND m.memberNick LIKE '%'||#{keyword}||'%'
+      </if>
+   </sql>
+
+	<sql id="orderBy">
+		<if test="order == 'date'">
+			ORDER BY dbRegDate DESC
+		</if>
+		<if test="order == 'view'">
+			ORDER BY dbLookCount DESC
+		</if>
+		<if test="order == 'reply'">
+			ORDER BY drCount DESC
+		</if>
+		<if test="order == 'like'">
+			ORDER BY dbLikelyCount DESC
+		</if>
+		<if test="order == 'report'">
+			ORDER BY dbReportCount DESC
+		</if>
+	</sql>
+
+   <insert id="regist">
+      INSERT INTO DietBoard
+      (
+      dbNum, memberNum, dbTitle, dbContent,
+      dbImage1, dbImage2, dbImage3, dbImage4, dbImage5,
+      dbRealImage1, dbRealImage2, dbRealImage3, dbRealImage4, dbRealImage5,
+      dbLookCount, dbImageCount
+      )
+      VALUES
+      (
+      dietBoard_seq.NEXTVAL,
+      #{memberNum}, #{dbTitle}, #{dbContent},
+      #{dbImage1}, #{dbImage2}, #{dbImage3}, #{dbImage4}, #{dbImage5},
+      #{dbRealImage1}, #{dbRealImage2}, #{dbRealImage3}, #{dbRealImage4}, #{dbRealImage5},
+      #{dbLookCount}, #{dbImageCount}
+      )
+   </insert>
+
+
+   <select id="getList"
+      resultType="com.spring.wefit.command.DietBoardVO">
+
+            SELECT * FROM
+               (
+                  SELECT ROWNUM as rn, diet.* FROM
+                     (
+                        SELECT 
+                        d.*, 
+                        m.memberNick,
+                        (SELECT COUNT(*) FROM dietLikely WHERE dbNum = d.dbNum) as dbLikelyCount,
+                        (SELECT COUNT(*) FROM dietReport WHERE dbNum = d.dbNum) as dbReportCount,
+                        (SELECT COUNT(*) FROM dietReply WHERE dbNum = d.dbNum) as drCount
+                        
+                        
+                        FROM 
+                        dietBoard d, 
+                        Member m
+                        
+                        WHERE 
+                        d.memberNum = m.memberNum
+                        <include refid="search" />
+                        <include refid="orderBy" />
+                     ) diet
+            )
+              <![CDATA[
+              WHERE rn > (#{pageNum}-1) * #{countPerPage}
+              AND rn <= #{pageNum} * #{countPerPage} 
+              ]]>
+
+   </select>
+
+
+   <select id="getContent"
+      resultType="com.spring.wefit.command.DietBoardVO">
+      SELECT d.*, m.memberNick,
+      LENGTHB(dbTitle) as dbTitleByte, LENGTHB(dbContent) as dbContentByte,
+      (SELECT COUNT(*) FROM DietLikely WHERE dbNum=#{dbNum }) as dbLikelyCount,
+      (SELECT COUNT(*) FROM DietReport WHERE dbNum=#{dbNum }) as dbReportCount
+      FROM DietBoard d, Member m
+      WHERE d.dbNum = #{dbNum}
+      AND d.memberNum = m.memberNum
+   </select>
+
+
+   <select id="getTotal" resultType="int">
+      SELECT COUNT(*) FROM DietBoard d, Member m
+      WHERE d.memberNum = m.memberNum
+      <include refid="search" />
+   </select>
+
+
+   <update id="update">
+      UPDATE DietBoard
+      SET
+      dbTitle = #{dbTitle},
+      dbContent = #{dbContent},
+      dbImage1 = #{dbImage1}, 
+      dbImage2 = #{dbImage2},
+      dbImage3 = #{dbImage3}, 
+      dbImage4= #{dbImage4},
+      dbImage5 = #{dbImage5},
+      dbRealImage1 = #{dbRealImage1}, 
+      dbRealImage2 = #{dbRealImage2},
+      dbRealImage3 = #{dbRealImage3}, 
+      dbRealImage4 = #{dbRealImage4},
+      dbRealImage5 = #{dbRealImage5},
+      dbImageCount = #{dbImageCount}
+
+      WHERE dbNum = #{dbNum}
+   </update>
+
+
+   <delete id="delete">
+      DELETE FROM DietBoard
+      WHERE dbNum = #{dbNum}
+   </delete>
+
+   <update id="updateViewCount">
+      UPDATE DietBoard SET
+         dbLookCount=dbLookCount+1
+      WHERE dbNum = #{dbNum}
+   </update>
+   
+   <delete id="deleteLike">
+      DELETE FROM dietLikely
+      WHERE dbNum = #{dbNum}
+      AND memberNum = #{memberNum}
+   </delete>
+   
+   
+   <select id="checkLovely" resultType="int">
+      SELECT COUNT(*) FROM dietLikely
+      WHERE dbNum = #{dbNum }
+      AND memberNum = #{memberNum }
+   </select>
+   
+   <insert id="insertLovely">
+      INSERT INTO dietLikely
+      VALUES(#{dbNum}, #{memberNum})
+   </insert>
+   
+   <select id="checkReport" resultType="int">
+      SELECT COUNT(*) FROM dietReport
+      WHERE dbNum = #{dbNum }
+      AND memberNum = #{memberNum }
+   </select>
+   
+   <insert id="insertReport">
+      INSERT INTO dietReport
+      VALUES(#{dbNum}, #{memberNum})
+   </insert>
+   
+   <select id="countLovely" resultType="int">
+      SELECT COUNT(*) FROM dietLikely
+      WHERE dbNum = #{dbNum}
+   </select>
+
+	<delete id="reportReset">
+		DELETE FROM DietReport
+		WHERE dbNum = #{dbNum}
+	</delete>
+	
+	<select id="countReport" resultType="int">
+      SELECT COUNT(*) FROM countReport
+      WHERE dbNum = #{dbNum}
+   </select>
+
+
+
+</mapper>

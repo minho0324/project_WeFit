@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+	<mapper namespace="com.spring.wefit.dietboard.mapper.IDietBoardMapper">
+		  
+		  <insert id="regist">
+		  	INSERT INTO DietBoard
+		  	(
+		  	dbNum, memberNum, dbTitle, dbContent,
+		  	dbImage1, dbImage2, dbImage3, dbImage4, dbImage5,
+		  	dbRealImage1, dbRealImage2, dbRealImage3, dbRealImage4, dbRealImage5, nickName
+		  	)
+		  	VALUES
+		  	(
+		  	dietBoard_seq.NEXTVAL, 
+		  	#{memberNum}, #{dbTitle}, #{dbContent},
+		  	#{dbImage1}, #{dbImage2}, #{dbImage3}, #{dbImage4}, #{dbImage5},
+		  	#{dbRealImage1}, #{dbRealImage2}, #{dbRealImage3}, #{dbRealImage4}, #{dbRealImage5}, #{nickName}
+		  	)
+		  </insert>
+		  
+		  
+		  <select id="getList" resultType="com.spring.wefit.command.DietBoardVO">
+		  	SELECT * FROM DietBoard
+		  	ORDER BY dbNum DESC 	
+		  </select>
+		  
+		  
+		  <select id="getContent" resultType="com.spring.wefit.command.DietBoardVO">
+		  	SELECT * FROM DietBoard
+		  	WHERE dbNum= #{dbNum}
+		  </select>
+		  
+		  <select id="getTotal" resultType="int">
+		  	SELECT COUNT(*)
+			FROM DietBoard
+		  </select>
+		  
+		  <update id="update">
+			UPDATE DietBoard
+			SET 
+			dbTitle = #{dbTitle},
+			dbContent = #{dbContent},
+			dbImage1 = #{dbImage1}, dbImage2 = #{dbImage2}, 
+			dbImage3 = #{dbImage3}, dbImage4= #{dbImage4}, 
+			dbImage5 = #{dbImage5},
+		  	dbRealImage1 = #{dbRealImage1}, dbRealImage2 = #{dbRealImage2}, 
+		  	dbRealImage3 = #{dbRealImage3}, dbRealImage4 = #{dbRealImage4}, 
+		  	dbRealImage5 = #{dbRealImage5},
+		  	nickName = #{nickName}
+		  	
+		  	WHERE dbNum = #{dbNum}
+		  </update>
+		  
+		  
+		  <delete id="delete">
+		  	DELETE FROM DietBoard
+			WHERE dbNum = #{dbNum}
+		  </delete>
+		  
+		  
+		  
+		  
+		  
+		  
+	</mapper>

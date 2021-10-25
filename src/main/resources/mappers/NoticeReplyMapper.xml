@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring.wefit.noticeboard.mapper.INoticeReplyMapper">
+	  
+	  <insert id="regist">
+	  INSERT INTO NoticeReply
+	  (
+	  	nrNum, nbNum, nrContent, memberNum
+	  )
+	  VALUES
+	  (
+	  	noticeReply_seq.NEXTVAL, #{nbNum}, 
+	  	#{nrContent}, #{memberNum}
+	  )
+	  </insert>
+	  
+	  
+	 <select id="getList" resultType="com.spring.wefit.command.NoticeReplyVO">
+		SELECT * FROM
+		(
+			SELECT ROWNUM as rn, noticeReply.* FROM
+			(
+				SELECT nr.*, m.memberNick
+				FROM NoticeReply nr, Member m
+				WHERE nr.nbNum = #{nbNum }
+				AND nr.memberNum = m.memberNum
+				ORDER BY nr.nrRegDate DESC
+			) noticeReply
+		)
+		<![CDATA[
+		WHERE rn > (#{paging.pageNum}-1)*#{paging.countPerPage}
+		AND rn <= #{paging.pageNum} * #{paging.countPerPage}
+		]]>
+	
+	</select>
+
+	  <update id="update">
+	  	UPDATE NoticeReply
+	  	SET
+	  	nrContent = #{nrContent}
+	  	WHERE nrNum = #{nrNum}
+	  </update>
+	  
+	  
+	  <delete id="delete">
+	  	DELETE FROM NoticeReply
+		WHERE nrNum = #{nrNum}
+	  </delete>
+	  
+	  
+	  <select id="getTotal" resultType="int">
+	  	SELECT COUNT(*) FROM NoticeReply
+		WHERE nbNum = #{nbNum}
+	  </select>
+	  
+	  <select id="getContent" resultType="com.spring.wefit.command.NoticeReplyVO">
+		SELECT * FROM NoticeReply
+		WHERE nrNum = #{nrNum}
+	</select>
+	  
+	  
+	  
+</mapper>

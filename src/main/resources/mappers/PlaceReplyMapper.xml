@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.spring.wefit.placeboard.mapper.IPlaceReplyMapper">
+
+
+	<!-- 댓글 등록 -->
+	<insert id="placeReplyRegist">
+		INSERT INTO PlaceReply(prNum, pbNum, prContent, memberNum, starScore)
+	  	VALUES(placeReply_seq.NEXTVAL, #{pbNum}, #{prContent}, #{memberNum}, #{starScore})
+	 </insert>
+	  
+	<!-- 댓글 수정 -->
+	<update id="replyUpdate">
+	  	UPDATE PlaceReply
+	  	SET prContent = #{prContent}
+	  	WHERE prNum = #{prNum}
+	</update>
+	
+	<!-- 댓글 삭제 -->
+ 	<delete id="replyDelete">
+	  	DELETE FROM PlaceReply
+		WHERE prNum = #{prNum}
+	</delete>
+
+	<!-- 댓글 개수 -->
+	<select id="replyGetTotal" resultType="int">
+	  	SELECT COUNT(*) FROM PlaceReply
+		WHERE pbNum = #{pbNum}
+	</select>
+	
+	<!-- 댓글 목록 -->
+	<select id="replyGetList" resultType="com.spring.wefit.command.PlaceReplyVO">
+		SELECT * FROM
+		(
+			SELECT ROWNUM as rn, placeReply.* FROM
+			(
+				SELECT pr.*, m.memberNick
+				FROM PlaceReply pr, Member m
+				WHERE pr.pbNum = #{pbNum}
+				AND pr.memberNum = m.memberNum
+				ORDER BY pr.prRegDate DESC
+			) placeReply
+		)
+		<![CDATA[
+			WHERE rn > (#{paging.pageNum}-1)*#{paging.countPerPage}
+			AND rn <= #{paging.pageNum} * #{paging.countPerPage}
+		]]>
+	</select>
+	
+	<!-- 댓글 상세 -->
+	<select id="replyGetContent" resultType="com.spring.wefit.command.PlaceReplyVO">
+		SELECT * FROM PlaceReply
+		WHERE prNum = #{prNum}
+	</select>
+
+</mapper>

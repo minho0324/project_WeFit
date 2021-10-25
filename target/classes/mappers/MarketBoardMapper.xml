@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ <mapper namespace="com.spring.wefit.market.mapper.IMarketBoardMapper">
+ 
+ 	<select id="getList" resultType="com.spring.wefit.command.marketBoardVO">
+ 		SELECT * FROM MarketBoard
+ 		ORDER BY mbNum DESC
+ 	</select>
+ 	
+ 	
+ 		
+ 	
+ 	<insert id="regist">
+ 		INSERT INTO MarketBoard(mbNum,memberNum, mbType, mbTitle, mbPrice, mbContent, mbImage1,mbAddrBasic,mbLongitude, mbLatitude, mbImageCount, mbLookCount)
+ 		values(marketBoard_seq.NEXTVAL,#{memberNum},#{mbType}, #{mbTitle}, #{mbPrice}, #{mbContent}, #{mbImage1}, #{mbAddrBasic}, #{mbLongitude}, #{mbLatitude},#{mbImageCount},#{mbLookCount})
+ 		
+ 	</insert>
+ 	
+ 	<select id="getContent" resultType="com.spring.wefit.command.marketBoardVO">
+ 		SELECT * FROM MarketBoard
+ 		WHERE mbNum = #{mbNum}
+ 	</select>
+ 	
+ 	<update id="update">
+ 		UPDATE MarketBoard
+ 		SET 
+ 	</update>
+ 
+ </mapper>

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="com.spring.wefit.noticeboard.mapper.INoticeBoardMapper">
+
+	<sql id="orderBy">
+		<if test="order == 'date'">
+			ORDER BY nbRegDate DESC
+		</if>
+		<if test="order == 'view'">
+			ORDER BY nbLookCount DESC
+		</if>
+		<if test="order == 'reply'">
+			ORDER BY nbReplyCount DESC
+		</if>
+		<if test="order == 'like'">
+			ORDER BY nbLikeCount DESC
+		</if>
+		<if test="order == 'report'">
+			ORDER BY nbReportCount DESC
+		</if>
+	</sql>
+	<!-- 게시물 작성 -->
+	<insert id="regist">
+		INSERT INTO NoticeBoard
+		(
+		nbNum, memberNum, nbTitle,
+		nbContent,
+		nbImage1, nbRealImage1,nbImageCount
+		)
+		VALUES
+		(
+		noticeBoard_seq.NEXTVAL,
+		#{memberNum}, #{nbTitle}, #{nbContent},
+		#{nbImage1}, #{nbRealImage1},#{nbImageCount}
+		)
+	</insert>
+
+	<sql id="search">
+		<if test="condition == 'title'">
+			where nbTitle LIKE '%'||#{keyword}||'%'
+		</if>
+		<if test="condition == 'content'">
+			where nbContent LIKE '%'||#{keyword}||'%'
+		</if>
+
+		<if test="condition == 'titleContent'">
+			where nbTitle LIKE '%'||#{keyword}||'%'
+			OR nbContent LIKE '%'||#{keyword}||'%'
+		</if>
+	</sql>
+
+	<select id="getList" resultType="com.spring.wefit.command.NoticeBoardVO">
+		SELECT * FROM
+		(
+			SELECT ROWNUM as rn, notice.* FROM
+			(
+				SELECT n.*, 
+				(SELECT COUNT(*) FROM NoticeReply WHERE nbNum=n.nbNum) as nbReplyCount,
+				(SELECT COUNT(*) FROM NoticeReport WHERE nbNum=n.nbNum) as nbReportCount,
+				(SELECT COUNT(*) FROM NoticeLikely WHERE nbNum=n.nbNum) as nbLikeCount
+				FROM NoticeBoard n
+				<include refid="search" />
+				<include refid="orderBy" />
+			) notice
+		) 
+				
+				
+				<![CDATA[
+		  		WHERE rn > (#{pageNum}-1) * #{countPerPage}
+		  		AND rn <= #{pageNum} * #{countPerPage} 
+		  		]]>
+	</select>
+
+	<select id="getContent"
+		resultType="com.spring.wefit.command.NoticeBoardVO">
+		SELECT * FROM NoticeBoard
+		WHERE nbNum= #{nbNum}
+	</select>
+
+
+	<select id="getTotal" resultType="int">
+		SELECT COUNT(*)
+		FROM NoticeBoard
+		<include refid="search" />
+	</select>
+
+
+	<update id="update">
+		UPDATE NoticeBoard
+		SET
+		nbTitle = #{nbTitle},
+		nbContent =
+		#{nbContent},
+		nbImage1 = #{nbImage1},
+		nbRealImage1 = #{nbRealImage1},
+		nbImageCount=#{nbImageCount}
+		WHERE nbNum = #{nbNum}
+	</update>
+
+
+	<delete id="delete">
+		DELETE FROM NoticeBoard
+		WHERE nbNum = #{nbNum}
+	</delete>
+
+	<update id="updateViewCount">
+		UPDATE NoticeBoard SET
+		nbLookCount=nbLookCount+1
+		WHERE nbNum = #{nbNum}
+	</update>
+
+	<select id="checkLovely" resultType="int">
+		SELECT COUNT(*) FROM
+		NoticeLikely
+		WHERE nbNum = #{nbNum}
+		AND memberNum = #{memberNum}
+	</select>
+
+	<insert id="insertLovely">
+		INSERT INTO NoticeLikely
+		VALUES(#{nbNum},
+		#{memberNum})
+	</insert>
+	
+	<delete id="deleteLike">
+		DELETE FROM NoticeLikely
+		WHERE nbNum = #{nbNum}
+		AND memberNum = #{memberNum}
+	</delete>
+	
+	<select id="countLike" resultType="int">
+		SELECT COUNT(*) FROM
+		NoticeLikely
+		WHERE nbNum = #{nbNum}
+	</select>
+
+	<select id="checkReport" resultType="int">
+		SELECT COUNT(*) FROM
+		NoticeReport
+		WHERE nbNum = #{nbNum}
+		AND memberNum = #{memberNum}
+	</select>
+
+	<insert id="insertReport">
+		INSERT INTO NoticeReport
+		VALUES(#{nbNum},
+		#{memberNum})
+	</insert>
+
+	<delete id="reportReset">
+		DELETE FROM NoticeReport
+		WHERE nbNum = #{nbNum}
+	</delete>
+
+
+
+
+
+
+</mapper>

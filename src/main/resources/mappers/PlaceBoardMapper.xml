@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.wefit.placeboard.mapper.IPlaceBoardMapper">
+	
+	<sql id="orderBy">
+		<if test="order == 'date'">
+			ORDER BY pbRegDate DESC
+		</if>
+		<if test="order == 'view'">
+			ORDER BY pbLookCount DESC
+		</if>
+		<if test="order == 'reply'">
+			ORDER BY pbReplyCount DESC
+		</if>
+		<if test="order == 'distance'">
+			ORDER BY distance ASC
+		</if>
+		<if test="order == 'like'">
+			ORDER BY pbLikelyCount DESC
+		</if>
+		<if test="order == 'report'">
+			ORDER BY pbReportCount DESC
+		</if>
+	</sql>
+	
+	<sql id="distance">
+		<choose>	
+			<when test = "distance == ''">	  
+			</when>		
+			<otherwise>WHERE 
+				<if test="distance == '2km'">
+				pbDistance = '2km 이내'
+				</if>
+				<if test="distance == '5km'">
+				pbDistance = '5km 이내'
+				</if>
+				<if test="distance == '10km'">
+				pbDistance = '10km 이내'
+				</if>
+			</otherwise>	
+		</choose>
+	</sql>
+	
+	<sql id="search" >
+		<if test="condition == 'title'">
+			AND p.pbTitle LIKE '%'||#{keyword}||'%'
+		</if>
+		<if test="condition == 'content'">
+			AND p.pbContent LIKE '%'||#{keyword}||'%'
+		</if>
+		<if test="condition == 'titleContent'">
+			AND p.pbTitle LIKE '%'||#{keyword}||'%'
+			OR p.pbContent LIKE '%'||#{keyword}||'%'
+		</if>
+		<if test="condition == 'area'">
+			AND p.pbAddrBasic LIKE '%'||#{keyword}||'%'
+		</if>
+	</sql>
+
+	<select id="getList" resultType="com.spring.wefit.command.PlaceBoardVO">
+		SELECT * FROM
+      	(
+         	SELECT ROWNUM as rn, place.* FROM
+         (
+            SELECT p.*, m.memberNick,(SELECT COUNT(*) FROM PlaceLikely WHERE pbNum=p.pbNum) as pbLikelyCount,
+            (SELECT COUNT(*) FROM PlaceReport WHERE pbNum=p.pbNum) as pbReportCount,
+            (SELECT COUNT(*) FROM PlaceReply WHERE pbNum=p.pbNum) as pbReplyCount,
+            DISTANCE_WGS84(#{latitude}, #{longitude}, p.pbLatitude, p.pbLongitude) as distance
+            FROM PlaceBoard p, Member m
+            WHERE p.memberNum = m.memberNum
+            AND p.pbCategory LIKE '%'||#{category}||'%'
+           	<include refid="search" />
+         	<include refid="orderBy" />
+         ) place
+         <![CDATA[
+         WHERE place.distance < #{distance}
+         ]]>
+      )
+      <![CDATA[
+      WHERE rn > (#{pageNum}-1)*#{countPerPage}
+      AND rn <= #{pageNum} * #{countPerPage}
+      ]]>
+	</select>
+
+	<select id="getContent" resultType="com.spring.wefit.command.PlaceBoardVO">
+		SELECT p.*, m.memberNick,
+		(SELECT COUNT(*) FROM PlaceLikely WHERE pbNum=#{pbNum}) as pbLikelyCount,
+		(SELECT COUNT(*) FROM PlaceReport WHERE pbNum=#{pbNum}) as pbReportCount
+		FROM PlaceBoard p, Member m
+		WHERE p.pbNum = #{pbNum}
+		AND p.memberNum = m.memberNum
+	</select>
+	
+	 <select id="getTotal" resultType="int">
+		SELECT COUNT(*) FROM
+		(
+		    SELECT p.*,DISTANCE_WGS84(#{latitude}, #{longitude}, p.pbLatitude, p.pbLongitude) as distance FROM PlaceBoard p, Member m
+		    WHERE p.memberNum = m.memberNum
+		    AND p.pbCategory LIKE '%'||#{category}||'%'
+		    <include refid="search" />
+		)
+		 <![CDATA[
+         WHERE distance < #{distance}
+         ]]>
+	</select>
+	 
+	<insert id="regist">
+		INSERT INTO PlaceBoard
+		(
+		pbNum, memberNum, pbCategory, pbTitle, pbContent, 
+		pbImage1, pbImage2, pbImage3, pbImage4, pbImage5,
+		pbRealImage1, pbRealImage2, pbRealImage3, pbRealImage4, pbRealImage5,
+		pbAddrBasic, pbAddrDetail, pbLatitude, pbLongitude, 
+		pbLookCount, pbImageCount
+		)
+		VALUES
+		(
+		placeboard_seq.NEXTVAL, 
+		#{memberNum}, #{pbCategory}, #{pbTitle}, #{pbContent}, 
+		#{pbImage1}, #{pbImage2}, #{pbImage3}, #{pbImage4}, #{pbImage5},
+		#{pbRealImage1}, #{pbRealImage2},#{pbRealImage3},#{pbRealImage4},#{pbRealImage5},
+		#{pbAddrBasic}, #{pbAddrDetail}, #{pbLatitude}, #{pbLongitude}, 
+		#{pbLookCount}, #{pbImageCount}
+		)		
+	</insert>
+	
+	<update id="update">
+		UPDATE PlaceBoard
+		SET 
+		pbTitle = #{pbTitle},
+		pbContent = #{pbContent},
+		pbImage1 = #{pbImage1}, pbImage2 = #{pbImage2}, 
+		pbImage3 = #{pbImage3}, pbImage4= #{pbImage4}, 
+		pbImage5 = #{pbImage5},
+		pbRealImage1 = #{pbRealImage1}, pbRealImage2 = #{pbRealImage2}, 
+		pbRealImage3 = #{pbRealImage3}, pbRealImage4 = #{pbRealImage4}, 
+		pbRealImage5 = #{pbRealImage5}
+		WHERE pbNum=#{pbNum}
+	</update>
+	 
+	<delete id="delete">
+		DELETE FROM PlaceBoard
+		WHERE pbNum=#{pbNum}
+	</delete>
+	
+	<update id="upHit">
+   		UPDATE PlaceBoard
+   		SET pbLookCount = pbLookCount + 1
+  		WHERE pbNum=#{pbNum}
+	</update>
+	
+
+	
+	<insert id="insertLike">
+		INSERT INTO PlaceLikely (pbNum, memberNum)
+		VALUES(#{pbNum}, #{memberNum})
+	</insert>
+
+	<select id="checkLike" resultType="int">
+		SELECT COUNT(*) FROM PlaceLikely
+		WHERE pbNum = #{pbNum}
+		AND memberNum = #{memberNum}
+	</select>
+
+	<delete id="deleteLike">
+ 	  DELETE FROM PlaceLikely
+ 	  WHERE pbNum = #{pbNum}
+	  AND memberNum = #{memberNum}
+	</delete>
+
+	<select id="countLike" resultType="int">
+		SELECT COUNT(*) FROM PlaceLikely
+		WHERE pbNum = #{pbNum}
+	</select>
+	
+	
+	
+	<insert id="insertReport">
+		INSERT INTO PlaceReport
+		VALUES(#{pbNum}, #{memberNum})
+	</insert>
+	
+	<select id="checkReport" resultType="int">
+		SELECT COUNT(*) FROM PlaceReport
+		WHERE pbNum = #{pbNum}
+		AND memberNum = #{memberNum}
+	</select>
+	
+	<delete id="reportReset">
+		DELETE FROM PlaceReport
+		WHERE pbNum = #{pbNum}
+	</delete>
+	
+
+</mapper>
+
+

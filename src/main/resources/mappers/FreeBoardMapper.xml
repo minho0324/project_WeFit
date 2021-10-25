@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.spring.wefit.free.mapper.IFreeBoardMapper">
+  
+  	<sql id="orderBy">
+		<if test="order == 'date'">
+			ORDER BY fbRegDate DESC
+		</if>
+		<if test="order == 'view'">
+			ORDER BY fbLookCount DESC
+		</if>
+		<if test="order == 'reply'">
+			ORDER BY fbReplyCount DESC
+		</if>
+		<if test="order == 'like'">
+			ORDER BY fbLikelyCount DESC
+		</if>
+		<if test="order == 'report'">
+			ORDER BY fbReportCount DESC
+		</if>
+	</sql>
+  	<!--  //자유게시판  글 등록
+	void regist(FreeBoardVO vo);
+	
+	//자유게시판 글 목록
+	List<FreeBoardVO> getList(PageVO vo);
+	
+	//자유게시판 글 상세보기
+	FreeBoardVO getContent(int fbNum);
+	
+	//자유게시판 글 수정
+	void update(FreeBoardVO vo);
+	
+	//자유게시판 글 삭제
+	void delete (int fbNum);
+	
+	//자유게시판 총 게시물 수
+	int getTotal(PageVO vo); -->
+	
+	<insert id="regist"><!-- 글 등록  -->
+		INSERT INTO FreeBoard
+		(fbNum, memberNum, fbTitle, fbContent,
+		fbImage1, fbImage2, fbImage3, fbImage4, fbImage5,
+		fbRealImage1, fbRealImage2, fbRealImage3, fbRealImage4, fbRealImage5,
+		fbLookCount, fbImageCount)
+		VALUES(FreeBoard_seq.NEXTVAL,(SELECT memberNum From Member WHERE memberNick = #{memberNick}),
+		#{fbTitle},#{fbContent},
+		#{fbImage1},#{fbImage2},#{fbImage3},#{fbImage4},#{fbImage5},
+		#{fbRealImage1},#{fbRealImage2},#{fbRealImage3},#{fbRealImage4},#{fbRealImage5},
+		0,#{fbImageCount}
+		)
+	</insert>
+	
+	<select id="getList" resultType="com.spring.wefit.command.FreeBoardVO"><!-- 글 목록  -->
+		SELECT * FROM
+		(
+			SELECT ROWNUM as rn, free.* FROM
+			(
+				SELECT f.*, m.memberNick,(SELECT COUNT(*) FROM FreeLikely WHERE fbNum=f.fbNum ) as fbLikelyCount,
+				(SELECT COUNT(*) FROM FreeReport WHERE fbNum=f.fbNum) as fbReportCount,
+				(SELECT COUNT(*) FROM FreeReply WHERE fbNum=f.fbNum) as fbReplyCount
+				FROM FreeBoard f, Member m
+				WHERE f.memberNum = m.memberNum
+				AND f.fbTitle LIKE '%'||#{condition}||'%'
+				AND f.fbTitle LIKE '%'||#{keyword}||'%'
+				<include refid="orderBy" />
+			) free
+		)
+		<![CDATA[
+		WHERE rn > (#{pageNum}-1)*#{countPerPage}
+		AND rn <= #{pageNum} * #{countPerPage}
+		]]>
+	
+	</select>
+	
+	<select id="getContent" resultType="com.spring.wefit.command.FreeBoardVO"> <!-- 글 상세  -->
+		SELECT f.*, m.memberNick,
+		(SELECT COUNT(*) FROM FreeLikely WHERE fbNum=#{fbNum }) as fbLikelyCount,
+		(SELECT COUNT(*) FROM FreeReport WHERE fbNum=#{fbNum }) as fbReportCount
+		FROM FreeBoard f, Member m
+		WHERE f.fbNum = #{fbNum}
+		AND f.memberNum = m.memberNum
+	</select>
+	
+	<select id="getTotal" resultType="int">
+		SELECT COUNT(*) FROM FreeBoard f, Member m
+		WHERE f.memberNum = m.memberNum
+		AND f.fbTitle LIKE '%'||#{condition}||'%'
+		AND f.fbTitle LIKE '%'||#{keyword}||'%'
+	</select>
+	
+	<update id="update"><!-- 글 수정  -->
+		UPDATE FreeBoard SET
+			fbTitle = #{fbTitle},
+			fbContent = #{fbContent},
+			fbImage1 = #{fbImage1},
+			fbImage2 = #{fbImage2},
+			fbImage3 = #{fbImage3},
+			fbImage4 = #{fbImage4},
+			fbImage5 = #{fbImage5},
+			fbRealImage1 = #{fbRealImage1},
+			fbRealImage2 = #{fbRealImage2},
+			fbRealImage3 = #{fbRealImage3},
+			fbRealImage4 = #{fbRealImage4},
+			fbRealImage5 = #{fbRealImage5},
+			fbImageCount = #{fbImageCount}
+		WHERE fbNum = #{fbNum}
+		
+	</update>
+	
+	<delete id="delete">
+		DELETE FROM FreeBoard 
+		WHERE fbNum= #{fbNum}
+	
+	</delete>
+	
+	<update id="updateViewCount">
+		UPDATE FreeBoard SET
+			fbLookCount=fbLookCount+1
+		WHERE fbNum = #{fbNum}
+	</update>
+	
+	<select id="checkLovely" resultType="int">
+		SELECT COUNT(*) FROM FreeLikely
+		WHERE fbNum = #{fbNum }
+		AND memberNum = #{memberNum }
+	</select>
+	
+	<insert id="insertLovely">
+		INSERT INTO FreeLikely
+		VALUES(#{fbNum}, #{memberNum})
+	</insert>
+	
+	<delete id="deleteLovely">
+		DELETE FROM FreeLikely
+		WHERE fbNum = #{fbNum}
+		AND memberNum = #{memberNum }
+	
+	</delete>
+	
+	<select id="countLike" resultType="int">
+		SELECT COUNT(*)
+		FROM FreeLikely
+		WHERE fbNum = #{fbNum }
+	</select>
+	
+	<select id="checkReport" resultType="int">
+		SELECT COUNT(*) FROM FreeReport
+		WHERE fbNum = #{fbNum }
+		AND memberNum = #{memberNum }
+	</select>
+	
+	<insert id="insertReport">
+		INSERT INTO FreeReport
+		VALUES(#{fbNum}, #{memberNum})
+	</insert>
+	<delete id="reportReset">
+		DELETE FROM FreeReport
+		WHERE fbNum = #{fbNum}
+	</delete>
+  </mapper>
